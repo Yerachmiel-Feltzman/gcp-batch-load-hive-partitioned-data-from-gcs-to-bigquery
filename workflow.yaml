@@ -1,0 +1,91 @@
+# [START workflows_bigquery_load]
+main:
+  params: [ input ]
+  steps:
+    - constants:
+        assign:
+          - base_url: __BASE_URL__
+          - partition: '${default(map.get(input, "partition"), "last_hour")}'
+          - bucket_name: '${input.bucket_name}'
+          - dataset_id: '${input.dataset_id}'
+          - table_id: '${input.table_id}'
+        next: check_partition_exists_in_bucket
+
+    - check_partition_exists_in_bucket:
+        call: http.get
+        args:
+          url: '${base_url + "/partition/" + partition + "/exists/in-bucket"}'
+          auth:
+            type: OIDC
+          query:
+            bucket_name: '${bucket_name}'
+        result: exists_in_bucket
+        next: ingest_or_not
+
+    - ingest_or_not:
+        switch:
+          # 0 == FALSE
+          - condition: '${exists_in_bucket.body == 0}'
+            assign:
+              - job_id: ''
+              - status_name: 'NOT_CREATED'
+              - status_value: '0'
+              - msg: '${"Partition `" + partition + "` does not exists in bucket. Nothing happened."}'
+            next: end_workflow
+        next: ingest_partition
+
+    - ingest_partition:
+        call: http.put
+        args:
+          url: '${base_url + "/partition/" + partition + "/ingest"}'
+          auth:
+            type: OIDC
+          body:
+            bucket_name: '${bucket_name}'
+            dataset_id: '${dataset_id}'
+            table_id: '${table_id}'
+        result: response
+        next: poll_ingestion_status
+
+    - poll_ingestion_status:
+        call: http.get
+        args:
+          url: '${base_url + "/load_job/" + response.body.job_id + "/status"}'
+          auth:
+            type: OIDC
+        result: response
+        next: assign_status
+
+    - assign_status:
+        assign:
+          - job_id: '${response.body.job_id}'
+          - status_name: '${response.body.status.name}'
+          - status_value: '${response.body.status.code}'
+          - msg: '${response.body.status.error_msg}'
+        next: check_status
+
+    - check_status:
+        switch:
+          # 1 == RUNNING
+          - condition: '${status_value == 1}'
+            next: sleep_and_poll_again
+        next: end_workflow
+
+    - sleep_and_poll_again:
+        call: sys.sleep
+        args:
+          seconds: 30
+        next: poll_ingestion_status
+
+    - end_workflow:
+        assign:
+          - return_message:
+              job_id: ${job_id}
+              status: ${status_name}
+              msg: ${msg}
+        next: return_result
+
+    - return_result:
+        return: '${return_message}'
+
+# [END workflows_bigquery_load]

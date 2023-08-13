@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "gcp-batch-load-hive-partitioned-data-from-gcs-to-bigquery"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+packages = [{include = "ingestion"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+google-cloud-firestore = "^2.11.1"
+google-cloud-bigquery = "^3.11.4"
+fastapi = "^0.100.1"
+uvicorn = {extras = ["standard"], version = "^0.23.1"}
+google-cloud-storage = "^2.10.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
