@@ -2,7 +2,7 @@
 
 Ingest hourly hive partitioned data from GCS to BigQuery.
 
-Note: it ingest tab delimited CSVs by default, using the configuration under `ingestion/bigquery_interaction.py:17`.
+Note: it ingests tab delimited CSVs by default, using the configuration under `ingestion/bigquery_interaction.py:17`.
 But, the workflow can be extended to allow passing a generic config. The API already accepts it.
 See: `ingestion.app.NewLoadJob`
 
