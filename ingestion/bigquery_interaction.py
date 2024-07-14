@@ -54,7 +54,6 @@ def start_load_job(bq: bigquery.Client, load_job_metadata: LoadJobMetadata) -> J
         logger.info(f"Started job {load_job_metadata.job_id}.")
         # noinspection PyProtectedMember
         logger.debug(f"Job information: {bq_job._properties}")
-        # TODO: test job that started but not updated in firestore
         return JobState.RUNNING
 
     except Exception as e:

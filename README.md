@@ -54,6 +54,40 @@ Currently, the process is manual, partition by partition. See [TODOs](#todos-) f
 
 To backfill, manually trigger the workflow adding the partition parameter. For example:
 
+#### Monitoring
+
+Monitor #2 checks for infra problems, while #1 checks for BigQuery problems.
+
+1 - Ingestion - BigQuery Job Failed
+Conditions: Policy violates when ANY condition is met.
+Log Query:
+
+```text
+(
+   resource.type="workflows.googleapis.com/Workflow" 
+   resource.labels.workflow_id="bigquery-ingestion-per-hour-partition-workflow" 
+   resource.labels.location="us-central1"
+) 
+(
+    jsonPayload.success.result =~ ".*status.*FAIL.*"
+)
+```
+
+2 - Ingestion - GCP Workflow Failed
+Conditions: Policy violates when ANY condition is met
+Log Query:
+
+```text
+(
+    resource.type="workflows.googleapis.com/Workflow" 
+    resource.labels.workflow_id="bigquery-ingestion-per-hour-partition-workflow" 
+    resource.labels.location="us-central1"
+) 
+(
+    severity=ERROR
+)
+```
+
 ```shell
 # for year=2023, month=08, day=06, hour=12
 ./commands.sh gcp:workflow:run:partition "2023080612"

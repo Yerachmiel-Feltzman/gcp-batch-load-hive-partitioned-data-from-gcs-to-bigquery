@@ -35,6 +35,7 @@ main:
         next: ingest_partition
 
     - ingest_partition:
+        try:
         call: http.put
         args:
           url: '${base_url + "/partition/" + partition + "/ingest"}'
@@ -45,15 +46,20 @@ main:
             dataset_id: '${dataset_id}'
             table_id: '${table_id}'
         result: response
+        # using idempotent retry since it catches more cases and partition ingestion is in overwrite mode
+        # see for more details: https://cloud.google.com/workflows/docs/reference/syntax/retrying#default-retry-policy
+        retry: ${http.default_retry}
         next: poll_ingestion_status
 
     - poll_ingestion_status:
+        try:
         call: http.get
         args:
           url: '${base_url + "/load_job/" + response.body.job_id + "/status"}'
           auth:
             type: OIDC
         result: response
+        retry: ${http.default_retry}
         next: assign_status
 
     - assign_status:

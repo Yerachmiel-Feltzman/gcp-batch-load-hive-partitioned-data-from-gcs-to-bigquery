@@ -87,7 +87,6 @@ def ingest_partition(partition: str,
 def poll_status(job_id: str, project_id: str = default_project_id, region: str = default_region):
     try:
         state, error_msg = tasks.poll_load_job_status(bq=bq_client, job_id=job_id, project_id=project_id, region=region)
-        print(type(error_msg))
         return LoadJob(job_id=job_id, status=JobStatus(name=state.name, code=state.value, error_msg=error_msg))
 
     except bigquery_interaction.BigQueryJobNotFound:
