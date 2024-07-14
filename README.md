@@ -54,6 +54,11 @@ Currently, the process is manual, partition by partition. See [TODOs](#todos-) f
 
 To backfill, manually trigger the workflow adding the partition parameter. For example:
 
+```shell
+# for year=2023, month=08, day=06, hour=12
+./commands.sh gcp:workflow:run:partition "2023080612"
+```
+
 #### Monitoring
 
 Monitor #2 checks for infra problems, while #1 checks for BigQuery problems.
@@ -86,11 +91,6 @@ Log Query:
 (
     severity=ERROR
 )
-```
-
-```shell
-# for year=2023, month=08, day=06, hour=12
-./commands.sh gcp:workflow:run:partition "2023080612"
 ```
 
 ### Cloud costs summary
